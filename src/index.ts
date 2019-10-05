@@ -11,7 +11,11 @@ async function main(): Promise<void> {
         console.log(`>>DB is conected. ID: ${idConecction}`);
         app.listen();
     } catch (error) {
-        console.error(error);
+        if(error.errno === "ECONNREFUSED") {
+            console.log(">>turn on Server of MySQL!")
+        } else {
+            console.error(error);
+        }
     }
 }
 
