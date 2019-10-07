@@ -112,14 +112,35 @@ export async function deleteTask(req: Request, res: Response): Promise<void> {
 }
 
 /**
- * 
- * @param req 
- * @param res 
+ * searchTask():
+ * Busca toda aquella tarea que comienza con algunas iniciales que el usuario guste
+ * @param req objeto Request del servidor
+ * @param res objeto Response del servidor
  */
 export async function searchTask(req: Request, res: Response): Promise<void> {
     try {
-
+        const { idUser } = req.app.locals
+        const { task } = req.params;
+        const sql: string = `SELECT * FROM Tasks 
+                            WHERE idUser = ${conn.escape(idUser)} AND 
+                            LIKE ${conn.escape(`%${task}%`)}`;
+        const tasks = conn.executeQuery(sql);
+        res.json(tasks);
     } catch (error) {
+        console.error(error);
+    }
+}
 
+/**
+ * putDone():
+ * Establece si la tarea ya esta realizado o no esta realizada
+ * @param req objeto Request del servidor
+ * @param res objeto Response del servidor
+ */
+export async function putDone(req: Response, res: Response): Promise<void> {
+    try {
+        
+    } catch (error) {
+        console.error(error);
     }
 }

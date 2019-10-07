@@ -19,3 +19,5 @@ UPDATE Tasks SET task = , description =, done=, date_finish= WHERE idTask =
 DELETE FROM Tasks WHERE idTask = 
 
 SELECT * FROM Tasks WHERE idTask = "046311f0-e78c-11e9-8513-09030fdb0e15"
+
+SELECT * FROM Tasks WHERE idUser = AND LIKE '%%';
