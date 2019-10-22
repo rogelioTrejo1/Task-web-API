@@ -1,5 +1,6 @@
 //Dependencias
 import { Request, Response } from "express";
+import multer from "multer";
 import jwt from "jsonwebtoken";
 /**
  * validateToken():
@@ -41,3 +42,5 @@ export function validateToken(req: Request, res: Response, next: Function) {
         }
     }
 }
+
+//multer

@@ -3,6 +3,7 @@ import { Router } from "express";
 import { login, register } from "../controllers/users.controllers";
 import { getTasks, getTask, postTask, putTask, deleteTask, searchTask } from "../controllers/tasks.controller";
 import { validateToken } from "../middlewares/middlewares";
+import multer from "../libs/multer";
 
 //Intancias
 const router: Router = Router();
@@ -19,7 +20,7 @@ router.route('/task/:idTask')
 
 router.route('/tasks')
     .get(validateToken, getTasks)
-    .post(validateToken, postTask)
+    .post(validateToken,multer.single('image'),postTask)
     .put(validateToken, putTask);
 
 router.get('/serachTask',validateToken, searchTask);

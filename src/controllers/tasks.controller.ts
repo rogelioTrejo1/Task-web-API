@@ -2,6 +2,8 @@
 import { Request, Response } from "express";
 import MySQL from "../class/MySQL";
 import Utils from "../class/Utils";
+import { resolve } from "path"
+import fs from "fs-extra";
 
 //Intancias
 const conn: MySQL = new MySQL();
@@ -59,10 +61,11 @@ export async function postTask(req: Request, res: Response): Promise<void> {
         //Se adquiere la id del usuario y de la tareas
         const { idUser } = req.app.locals;
         const idTask: string = getIdTask();
+        const pathPhoto: string = req.file.path;
         const { task, description, done, date_finish } = req.body;
         //Se establecen los parametros para el guardado de la tarea y se crea el query con los parametros
-        const params: string = `${conn.escape(idTask)},${conn.escape(idUser)},${conn.escape(task)},${conn.escape(description)},${conn.escape(done)},NOW(),${conn.escape(date_finish)}`;
-        const sql: string = `INSERT INTO Tasks(idTask,idUser,task,description,done,date_init,date_finish) 
+        const params: string = `${conn.escape(idTask)},${conn.escape(idUser)},${conn.escape(task)},${conn.escape(description)},${conn.escape(done)},NOW(),${conn.escape(date_finish)},${conn.escape(pathPhoto)}`;
+        const sql: string = `INSERT INTO Tasks(idTask,idUser,task,description,done,date_init,date_finish,pathPhoto) 
                             VALUE(${params});`;
         //Se ejecuta el query y se muestra la respuesta al usuario
         const newTask: JSON = await conn.executeQuery(sql);
@@ -102,9 +105,13 @@ export async function deleteTask(req: Request, res: Response): Promise<void> {
     try {
         //Se aquiere la id de la tarea mandada por la URL y se crea el query
         const { idTask } = req.params;
+        const sqlFirst: string = `SELECT pathPhoto FROM Tasks WHERE idTask = ${conn.escape(idTask)}`;
+        const task: any = await conn.executeQuery(sqlFirst);
+        const pathPhoto: string = task[0].pathPhoto;
         const sql: string = `DELETE FROM Tasks WHERE idTask = ${conn.escape(idTask)}`;
         //Se ejecuta el query y se muestra la respuesta al cliente
         const deleteTask: JSON = await conn.executeQuery(sql);
+        await fs.unlink(resolve(pathPhoto));
         res.json(deleteTask);
     } catch (error) {
         console.error(error);
@@ -139,7 +146,7 @@ export async function searchTask(req: Request, res: Response): Promise<void> {
  */
 export async function putDone(req: Response, res: Response): Promise<void> {
     try {
-        
+
     } catch (error) {
         console.error(error);
     }

@@ -25,6 +25,15 @@ class Uitils {
     }
 
     /**
+     * getNamePhoto():
+     * Genera el nombre de la foto que se guardara en el servidor.
+     */
+    public static getNamePhoto(): string {
+        const namePhoto: string = random();
+        return namePhoto;
+    }
+
+    /**
      * encryPass():
      * Encrypta una contraseña para con un salt de 10
      * @param pass es la contraseña que se desea encryptar
