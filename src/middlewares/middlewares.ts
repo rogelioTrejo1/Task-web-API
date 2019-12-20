@@ -42,5 +42,3 @@ export function validateToken(req: Request, res: Response, next: Function) {
         }
     }
 }
-
-//multer

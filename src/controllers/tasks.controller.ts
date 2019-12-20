@@ -64,7 +64,7 @@ export async function postTask(req: Request, res: Response): Promise<void> {
         const pathPhoto: string = req.file.path;
         const { task, description, done, date_finish } = req.body;
         //Se establecen los parametros para el guardado de la tarea y se crea el query con los parametros
-        const params: string = `${conn.escape(idTask)},${conn.escape(idUser)},${conn.escape(task)},${conn.escape(description)},${conn.escape(done)},NOW(),${conn.escape(date_finish)},${conn.escape(pathPhoto)}`;
+        const params: string = `${conn.escape(idTask)},${conn.escape(idUser)},${conn.escape(task)},${conn.escape(description)},${done},NOW(),${conn.escape(date_finish)},${conn.escape(pathPhoto)}`;
         const sql: string = `INSERT INTO Tasks(idTask,idUser,task,description,done,date_init,date_finish,pathPhoto) 
                             VALUE(${params});`;
         //Se ejecuta el query y se muestra la respuesta al usuario
@@ -126,12 +126,15 @@ export async function deleteTask(req: Request, res: Response): Promise<void> {
  */
 export async function searchTask(req: Request, res: Response): Promise<void> {
     try {
+        //Uptengo la id del usuario alojada en las variables locales del servidor
         const { idUser } = req.app.locals
         const { task } = req.params;
         const sql: string = `SELECT * FROM Tasks 
                             WHERE idUser = ${conn.escape(idUser)} AND 
                             LIKE ${conn.escape(`%${task}%`)}`;
-        const tasks = conn.executeQuery(sql);
+        //Ejecuto el query de MySQL
+        const tasks = await conn.executeQuery(sql);
+        //Muestro la respuesta en JSON
         res.json(tasks);
     } catch (error) {
         console.error(error);
@@ -144,9 +147,15 @@ export async function searchTask(req: Request, res: Response): Promise<void> {
  * @param req objeto Request del servidor
  * @param res objeto Response del servidor
  */
-export async function putDone(req: Response, res: Response): Promise<void> {
+export async function putDone(req: Request, res: Response): Promise<void> {
     try {
-
+        //Obtengo los datos de el cuerpo de la petición
+        const { idTask, done } = req.body;
+        const sql: string = `UPDATE Tasks SET done=${done} WHERE idTask = ${conn.escape(idTask)}`;
+        //Ejecuto el query de MySQL
+        const updateDone = await conn.executeQuery(sql);   
+        //Muesto la respuesta en formato JSON 
+        res.json(updateDone);
     } catch (error) {
         console.error(error);
     }

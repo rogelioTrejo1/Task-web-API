@@ -1,7 +1,7 @@
 //Dependencias
 import { Router } from "express";
 import { login, register } from "../controllers/users.controllers";
-import { getTasks, getTask, postTask, putTask, deleteTask, searchTask } from "../controllers/tasks.controller";
+import { getTasks, getTask, postTask, putTask, deleteTask, searchTask, putDone } from "../controllers/tasks.controller";
 import { validateToken } from "../middlewares/middlewares";
 import multer from "../libs/multer";
 
@@ -24,6 +24,7 @@ router.route('/tasks')
     .put(validateToken, putTask);
 
 router.get('/serachTask',validateToken, searchTask);
+router.put('/updateDone',validateToken, putDone)
 
 //Exportacion del modulo
 export default router;
