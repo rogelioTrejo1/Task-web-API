@@ -13,10 +13,10 @@ const { getNamePhoto } = Utils;
  */
 const storage = multer.diskStorage({
     destination: 'uploads',
-    filename: (req: Request, file , cb: Function) => {
+    filename: (req: Request, file, cb: Function) => {
         cb(null, getNamePhoto() + extname(file.originalname));
     }
 });
 
 //Exportación del modulo 
-export default multer({storage});
+export default multer({ storage });

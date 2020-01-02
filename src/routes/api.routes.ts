@@ -23,7 +23,7 @@ router.route('/tasks')
     .post(validateToken,multer.single('image'),postTask)
     .put(validateToken, putTask);
 
-router.get('/serachTask',validateToken, searchTask);
+router.get('/serachTask/:task',validateToken, searchTask);
 router.put('/updateDone',validateToken, putDone)
 
 //Exportacion del modulo
