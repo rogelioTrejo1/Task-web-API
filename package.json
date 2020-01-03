@@ -1,7 +1,7 @@
 {
-  "name": "task-web-API",
+  "name": "task-web-api",
   "version": "1.0.0",
-  "description": "",
+  "description": "Rest API de una aplicación de tareas",
   "main": "index.js",
   "scripts": {
     "build": "tsc",
@@ -9,7 +9,7 @@
     "start": "node dist/index.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "Rogelio Trejo Estrada",
   "license": "ISC",
   "devDependencies": {
     "@types/bcryptjs": "^2.4.2",
