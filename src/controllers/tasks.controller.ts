@@ -1,6 +1,6 @@
 //Dependencias
 import { Request, Response } from "express";
-import MySQL from "../class/MySQL";
+import MySQL, { SQLResponce } from "../class/MySQL";
 import Utils from "../class/Utils";
 import { resolve } from "path"
 import fs from "fs-extra";
@@ -19,16 +19,35 @@ const { getIdTask } = Utils;
  * @param res objeto Response del servidor
  */
 export async function getTasks(req: Request, res: Response): Promise<void> {
+    let information: IInformation = {};
+    let status: number | undefined;
+    //Trata de realizar la consulta SQL
     try {
         //Adquiero la id del usuario para su uso posterior
         const { idUser } = req.app.locals;
         //Realizo la sentencia SQL para el retorno de las tareas.
         const sql: string = `SELECT * FROM Tasks WHERE idUser = ${conn.escape(idUser)}`;
-        const tasks = await conn.executeQuery(sql);
-        res.json(tasks);
+        const tasks: ITask[] = await conn.executeQuery(sql);
+
+        //Se prepara la respuesta
+        information = {
+            message: "Datos consultados Satisfactoriamente!",
+            resp: true,
+            status: status = 200,
+            body: tasks
+        }
     } catch (error) {
-        console.error(error);
+        //Manejo el posible error que pueda suceder en los datos
+        information = {
+            message: "Error al consultar los datos!",
+            resp: false,
+            status: status = 400,
+            error: error
+        }
     }
+
+    //Se manda la respuesta al cliente
+    res.status(status as number).json(information);
 }
 
 /**
@@ -38,16 +57,33 @@ export async function getTasks(req: Request, res: Response): Promise<void> {
  * @param res objeto Response del servidor
  */
 export async function getTask(req: Request, res: Response): Promise<void> {
+    let information: IInformation = {};
+    let status: number | undefined;
     try {
-        //Adquiero la id de la rarea mandada por el parametro de la URL
+        //Adquiero la id de la tarea mandada por el parametro de la URL y confinma su existencia
         const { idTask } = req.params;
         //Se realiza la sentensia en MySQL y se ejecuta
         const sql: string = `SELECT * FROM Tasks WHERE idTask = ${conn.escape(idTask)};`;
-        const task: JSON | any = await conn.executeQuery(sql);
-        res.json(task[0]);
+        const task: ITask[] = await conn.executeQuery(sql);
+        //Se prepara la respuesta del servidor
+        information = {
+            message: "Consulta satisfactoria",
+            status: status = 200,
+            resp: false,
+            body: task[0]
+        }
     } catch (error) {
-        console.error(error);
+        //Si se tien un error interno, se manda la siguiente información
+        information = {
+            message: "Error interno!",
+            resp: false,
+            status: status = 401,
+            error
+        }
     }
+
+    //Se manda la respuesta al cliente
+    res.status(status as number).json(information);
 }
 
 /**
@@ -62,13 +98,13 @@ export async function postTask(req: Request, res: Response): Promise<void> {
         const { idUser } = req.app.locals;
         const idTask: string = getIdTask();
         const pathPhoto: string = req.file.path;
-        const { task, description, done, date_finish } = req.body;
+        const { task, description, date_finish }: ITask = req.body;
         //Se establecen los parametros para el guardado de la tarea y se crea el query con los parametros
-        const params: string = `${conn.escape(idTask)},${conn.escape(idUser)},${conn.escape(task)},${conn.escape(description)},${done},NOW(),${conn.escape(date_finish)},${conn.escape(pathPhoto)}`;
-        const sql: string = `INSERT INTO Tasks(idTask,idUser,task,description,done,date_init,date_finish,pathPhoto) 
+        const params: string = `${conn.escape(idTask)},${conn.escape(idUser)},${conn.escape(task)},${conn.escape(description)},NOW(),${conn.escape(date_finish)},${conn.escape(pathPhoto)}`;
+        const sql: string = `INSERT INTO Tasks(idTask,idUser,task,description,date_init,date_finish,pathPhoto) 
                             VALUE(${params});`;
         //Se ejecuta el query y se muestra la respuesta al usuario
-        const newTask: JSON = await conn.executeQuery(sql);
+        const newTask: SQLResponce = await conn.executeQuery(sql);
         res.json(newTask);
     } catch (error) {
         console.error(error);
@@ -153,10 +189,37 @@ export async function putDone(req: Request, res: Response): Promise<void> {
         const { idTask, done } = req.body;
         const sql: string = `UPDATE Tasks SET done=${done} WHERE idTask = ${conn.escape(idTask)}`;
         //Ejecuto el query de MySQL
-        const updateDone = await conn.executeQuery(sql);   
+        const updateDone = await conn.executeQuery(sql);
         //Muesto la respuesta en formato JSON 
         res.json(updateDone);
     } catch (error) {
         console.error(error);
     }
+}
+
+//Modelos de las tareas
+
+/**
+ * Modelo de la tareas que se insertara
+ */
+interface ITask {
+    IdTask: string;
+    idUser: string;
+    task: string;
+    description: string;
+    done: boolean;
+    date_init: string;
+    date_finish: string;
+    pathPhoto: string;
+}
+
+/**
+ * Modelo de la respuesta del servidor al cliente.
+ */
+interface IInformation {
+    status?: number;
+    resp?: boolean;
+    message?: string;
+    body?: ITask | ITask[] | SQLResponce;
+    error?: Error | ExceptionInformation;
 }

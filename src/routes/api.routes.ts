@@ -2,7 +2,7 @@
 import { Router } from "express";
 import { login, register } from "../controllers/users.controllers";
 import { getTasks, getTask, postTask, putTask, deleteTask, searchTask, putDone } from "../controllers/tasks.controller";
-import { validateToken } from "../middlewares/middlewares";
+import { validateToken, validateRoute } from "../middlewares/middlewares";
 import multer from "../libs/multer";
 
 //Intancias
@@ -25,6 +25,13 @@ router.route('/tasks')
 
 router.get('/serachTask/:task',validateToken, searchTask);
 router.put('/updateDone',validateToken, putDone)
+
+//Manejo 404 "Not Found!"
+router.route('*')
+    .get(validateRoute)
+    .post(validateRoute)
+    .put(validateRoute)
+    .delete(validateRoute);
 
 //Exportacion del modulo
 export default router;

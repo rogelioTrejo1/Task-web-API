@@ -20,29 +20,33 @@ const { getIdUser, comparePass, encryPass } = Utils;
  * @param res objeto Response del servidor
  */
 export async function login(req: Request, res: Response) {
+    //Varible "information" creado para adjuntar toda la información que se mostrara
+    let information: IInformation = {};
+    let status: number | undefined;
     try {
-        //Varible "information" creado para adjuntar toda la información que se mostrara
-        let information: object = {};
-        const { name, passUser } = req.body;
-        const sql1: string = `SELECT * FROM Users WHERE userName = ${conn.escape(name)};`;
-        const searchUser: any = await conn.executeQuery(sql1);
+        const { username, password }: IUser = req.body;
+        const sql1: string = `SELECT * FROM Users WHERE userName = ${conn.escape(username)};`;
+        const searchUser: IUserDB[] = await conn.executeQuery(sql1);
         //Validación del usuario
         if (searchUser.length > 0) {
             //Si exixte el usuario, realizara lo siguiente
-            const { idUser ,pass } = searchUser[0];
-            const validedPass: boolean = await comparePass(pass, passUser);
+            const idUser = searchUser[0].idUser;
+            const dbPassword = searchUser[0].password;
+            const validedPass: boolean = await comparePass(dbPassword, password);
             //Validación de contraseña encriptada 
             if(!validedPass) {
                 //Si la contraseña es correcta
                 information = {
                     message: "Las credenciales son incorrectas",
-                    valided: false,    
+                    resp: false,
+                    status: status = 401    
                 };
             } else {
                 //Si la contraseña es incorrecta
                 information = {
                     message: "Usuario valido",
-                    valided: true,
+                    status: status = 200,
+                    resp: true,
                     //Genera un token que dejara de funcionar en 24 horas
                     token: jwt.sign({idUser},`${process.env.SECRET_TOKEN}`, {
                         expiresIn: 60 * 60 * 24
@@ -53,14 +57,21 @@ export async function login(req: Request, res: Response) {
             //Si el usuario no exixte y/o no esta registrado
             information = {
                 message: "Usuario no encontrado",
-                valided: false
+                resp: false,
+                status: status = 401
             }
         }
-        //Envio de respuesta en formato JSON
-        res.json(information);
+        
     } catch (error) {
-        console.error(error);
+        information = {
+            message: "Error interno!!!!!",
+            resp: false,
+            status: status = 400,
+            error 
+        }
     }
+    //Envio de respuesta en formato JSON
+    res.status(status as number).json(information);
 }
 
 /**
@@ -73,12 +84,12 @@ export async function register(req: Request, res: Response) {
     try {
         //Varible "information" creado para adjuntar toda la información que se mostrara
         let information: object = {};
-        const { name, email, passUser } = req.body;
+        const { username, email, password }: IUser = req.body;
         //Generacion de la ID del Usuario
         const idUser: string = getIdUser();
         //Encriptamiento de la contraseña
-        const newPass: string = await encryPass(passUser);
-        const sql1: string = `SELECT * FROM Users WHERE userName = ${conn.escape(name)};`
+        const newPassword: string = await encryPass(password);
+        const sql1: string = `SELECT * FROM Users WHERE userName = ${conn.escape(username)};`
         const validarUsuario: any = await conn.executeQuery(sql1);
         //Validación del usuario registrado
         if (validarUsuario.length > 0) {
@@ -89,14 +100,14 @@ export async function register(req: Request, res: Response) {
             };
         } else {
             //Si el usuario no esta registrado realisara y mostrara:
-            const sql: string = `INSERT INTO Users VALUE(${conn.escape(idUser)},${conn.escape(name)},${conn.escape(newPass)},${conn.escape(email)});`;
+            const sql: string = `INSERT INTO Users VALUE(${conn.escape(idUser)},${conn.escape(username)},${conn.escape(newPassword)},${conn.escape(email)});`;
             const newUser: JSON = await conn.executeQuery(sql);
             information = {
                 message: "Usuario Registrado correctamente!",
                 resp: true,
                 body: newUser,
                 //Genera un token que dejara de funcionar en 24 horas
-                token: jwt.sign({ idUser }, `${process.env.SECRET_TOKEN}`, {
+                token: jwt.sign({ idUser }, process.env.SECRET_TOKEN as string, {
                     expiresIn: 60 * 60 * 24
                 })
             };
@@ -106,4 +117,33 @@ export async function register(req: Request, res: Response) {
     } catch (error) {
         console.error(error);
     }
+}
+
+//Modelos del usuario
+
+/**
+ * Modelo del usuario que se insertara
+ */
+interface IUser {
+    username: string;
+    password: string;
+    email:string;
+}
+
+/**
+ * Modelo de la base de datos que se inserto 
+ */
+interface IUserDB extends IUser {
+    idUser: string;
+}
+
+/**
+ * Modelo de la respuesta del servidor al cliente
+ */
+interface IInformation {
+    message?: string;
+    resp?: boolean;
+    status?: number;
+    token?: string;
+    error?: Error | ExceptionInformation;
 }

@@ -6,6 +6,7 @@ import express, { Application, json, urlencoded, static as staticFiles } from "e
 import morgan from "morgan";
 import cors from "cors";
 import { resolve } from "path";
+import { validateRoute } from "./middlewares/middlewares";
 
 //Rutas del servidor
 import api from "./routes/api.routes";
@@ -42,7 +43,8 @@ class App {
         this.app.use(morgan('dev'));
         this.app.use(cors());
         this.app.use(json());
-        this.app.use(urlencoded({ extended: false}))
+        this.app.use(urlencoded({ extended: false}));
+        this.app.use(validateRoute);
     }
 
     /**
